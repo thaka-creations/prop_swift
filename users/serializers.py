@@ -22,3 +22,9 @@ class RegistrationSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.EmailField(required=True)
     password = serializers.CharField(required=True)
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'middle_name', 'username']

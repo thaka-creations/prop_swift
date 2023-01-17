@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.contrib.auth import authenticate
 from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from oauth2_provider.models import get_application_model
@@ -67,3 +68,49 @@ class AuthenticationViewSet(viewsets.ViewSet):
 
             oauth2_user.create_application_user(instance)
             return Response({"details": "Successfully registered"}, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], detail=False)
+    def logout(self, request):
+        token = self.request.headers.get('Authorization', b'')
+        auth_token = token.split()
+        logged_in_user = request.user
+        status_code, message = oauth2_user.logout(auth_token[1], logged_in_user)
+
+        if not status_code:
+            return Response({"details": message}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"details": message}, status=status.HTTP_200_OK)
+
+
+class UserViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action in ['user_details', 'get_user_details']:
+            return user_serializers.UserProfileSerializer
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+    @action(methods=['GET'], detail=False, url_path='user-details')
+    def user_details(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response({"details": serializer.data}, status=status.HTTP_200_OK)
+
+    @action(methods=['GET'], detail=False, url_path='get-user-details')
+    def get_user_details(self, request):
+        user_id = request.query_params.get('user_id')
+        if not user_id:
+            return Response({"details": "User id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            instance = user_models.User.objects.get(id=user_id)
+        except user_models.User.DoesNotExist:
+            return Response({"details": "User does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(instance)
+        return Response({"details": serializer.data}, status=status.HTTP_200_OK)
