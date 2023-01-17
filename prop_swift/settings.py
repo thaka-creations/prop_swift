@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'oauth2_provider',
     'corsheaders',
-    'users'
+    'users',
+    'property',
 ]
 
 REST_FRAMEWORK = {
