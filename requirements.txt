@@ -5,6 +5,7 @@ charset-normalizer==3.0.1
 cryptography==39.0.0
 Deprecated==1.2.13
 Django==4.1.5
+django-cors-headers==3.12.0
 django-oauth-toolkit==1.7.1
 djangorestframework==3.14.0
 idna==3.4

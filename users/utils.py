@@ -9,7 +9,7 @@ from rest_framework.exceptions import APIException
 from oauth2_provider.generators import generate_client_id, generate_client_secret
 from oauth2_provider.models import get_application_model
 
-CALLBACK_URL = settings.SERVICES_URLS['callback_url']
+CALLBACK_URL = settings.SERVICES_URLS['CALLBACK_URL']
 
 
 class ApplicationUser:
