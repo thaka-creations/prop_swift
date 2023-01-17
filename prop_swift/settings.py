@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'users.utils.auth.SystemAuthentication',
+        'users.utils.SystemAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': (
             'rest_framework.renderers.JSONRenderer',
