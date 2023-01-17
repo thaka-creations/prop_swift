@@ -10,7 +10,36 @@ class PropertyViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     @action(
-        methods=['GET'],
+        methods=['POST'],
+        detail=False,
+        url_path='upload-file',
+    )
+    def upload_file(self, request):
+        documents = []
+        with transaction.atomic():
+            for k, v in request.data.items():
+                for f in request.FILES.getlist(str(k)):
+                    try:
+                        instance = property_models.PropertyImages.objects.create(
+                            file=f,
+                            uploader=request.user
+                        )
+                    except PermissionError:
+                        return Response(
+                            {"details": "Could not upload file"},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    documents.append(str(instance.id))
+
+            if not documents:
+                return Response(
+                    {"details": "No files uploaded"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            return Response({"details": documents}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['POST'],
         detail=False,
         url_path='add-property'
     )
@@ -21,13 +50,17 @@ class PropertyViewSet(viewsets.ViewSet):
 
         validated_data = serializer.validated_data
         is_owner = validated_data.pop('is_owner')
-        if is_owner:
-            validated_data['owners'] = request.user
-        else:
-            validated_data['tenants'] = request.user
+        files = validated_data.pop('files')
 
         with transaction.atomic():
-            property_models.Property.objects.create(**validated_data)
+            instance = property_models.Property.objects.create(**validated_data)
+            if is_owner:
+                instance.owners.add(request.user)
+            else:
+                instance.tenants.add(request.user)
+
+            if files.exists():
+                files.update(property=instance)
             return Response({"details": "Property added successfully"}, status=status.HTTP_200_OK)
 
     @action(

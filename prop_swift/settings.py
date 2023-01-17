@@ -22,7 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w2o7^mzm4k6n&gm-o16q-oowuqyke2pyoctp%^rbb4*&^*dg8i'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+TOKEN_SECRET_KEY = os.environ.get('TOKEN_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -141,6 +143,10 @@ SERVICES_URLS = {
     'CALLBACK_URL': os.environ.get('TRANSFER_PROTOCOL') + '://' + os.environ.get('CALLBACK_SERVICE') + os.environ.get(
         'API_VERSION'),
 }
+
+MEDIA_ROOT = os.getenv('MEDIA_ROOT')
+
+MEDIA_URL = '/media/'
 
 REGISTRATION_OTP_EXPIRY_TIME = os.environ.get('REGISTRATION_OTP_EXPIRY_TIME')
 

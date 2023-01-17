@@ -61,8 +61,9 @@ class Property(BaseModel):
 
 class PropertyImages(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="property_images")
-    image = models.FileField(upload_to=file_upload, blank=True, null=True)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="property_images", null=True)
+    file = models.FileField(upload_to=file_upload, blank=True, null=True)
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="property_images_uploader", null=True)
 
 
 class PropertyRent(BaseModel):

@@ -69,7 +69,7 @@ class AuthenticationViewSet(viewsets.ViewSet):
             oauth2_user.create_application_user(instance)
             return Response({"details": "Successfully registered"}, status=status.HTTP_200_OK)
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
     def logout(self, request):
         token = self.request.headers.get('Authorization', b'')
         auth_token = token.split()

@@ -25,6 +25,12 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    user_id = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'middle_name', 'username']
+        fields = ['user_id', 'first_name', 'last_name', 'middle_name', 'username']
+
+    @staticmethod
+    def get_user_id(obj):
+        return obj.id
