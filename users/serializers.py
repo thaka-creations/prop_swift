@@ -17,3 +17,8 @@ class RegistrationSerializer(serializers.Serializer):
         if attrs.get("password") != attrs.pop("confirm_password"):
             raise serializers.ValidationError("Passwords don't match")
         return attrs
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True)
