@@ -1,5 +1,6 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
+from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -60,9 +61,78 @@ class PropertyViewSet(viewsets.ViewSet):
             else:
                 instance.tenants.add(request.user)
 
+                # add first property rent
+                start_date = timezone.now().replace(day=1)
+                due_date = start_date + timezone.timedelta(days=30)
+
+                property_models.PropertyRent.objects.create(
+                    property=instance,
+                    amount=instance.rent_amount,
+                    rent_status="unpaid",
+                    start_date=start_date,
+                    due_date=due_date
+                )
+
             if files.exists():
                 files.update(property=instance)
             return Response({"details": "Property added successfully"}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        url_path='add-rent-payment'
+    )
+    def add_rent_payment(self, request):
+        serializer = property_serializers.AddRentPaymentSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+        instance = validated_data['instance']
+        amount = validated_data['amount']
+
+        property_instance = instance.property
+
+        if not property_instance.owners.filter(id=request.user.id).exists() and \
+                not property_instance.tenants.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner or tenant of this property"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            instance.amount_paid = amount
+            instance.date_paid = timezone.now()
+            instance.rent_status = "paid"
+            instance.save()
+            return Response({"details": "Rent paid successfully"}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        url_path='add-expense'
+    )
+    def add_expense(self, request):
+        serializer = property_serializers.ListCreatePropertyExpenseSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+        property_id = validated_data.pop('property_id')
+
+        try:
+            instance = property_models.Property.objects.get(id=property_id)
+        except property_models.Property.DoesNotExist:
+            return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not instance.owners.filter(id=request.user.id).exists() and \
+                not instance.tenants.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner or tenant of this property"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data['property'] = instance
+
+        with transaction.atomic():
+            serializer.save(**validated_data)
+            return Response({"details": "Expense added successfully"}, status=status.HTTP_200_OK)
 
     @action(
         methods=['GET'],
@@ -99,14 +169,28 @@ class PropertyViewSet(viewsets.ViewSet):
             Q(property__owners=request.user) | Q(property__tenants=request.user)
         }
 
-        if property_id:
-            filter_params.update({'property__id': property_id})
-
         if filter_type:
-            filter_params.update({'rent_status': filter_type})
+            if filter_type not in ['paid', 'unpaid', 'overdue']:
+                return Response({"details": "Invalid filter type"}, status=status.HTTP_400_BAD_REQUEST)
+            filter_params.add(Q(rent_status=filter_type))
+
+        if property_id:
+            try:
+                instance = property_models.Property.objects.get(id=property_id)
+            except property_models.Property.DoesNotExist:
+                return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
+                    id=request.user.id).exists():
+                return Response({"details": "You are not an owner or tenant of this property"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            filter_params.add(Q(property=instance))
 
         qs = property_models.PropertyRent.objects.filter(
             *filter_params)
+
+        serializer = property_serializers.ListPropertyRentSerializer(qs, many=True)
+        return Response({"details": serializer.data}, status=status.HTTP_200_OK)
 
     @action(
         methods=['GET'],
@@ -116,4 +200,102 @@ class PropertyViewSet(viewsets.ViewSet):
     def list_expenses(self, request):
         # with date filters and property filters
         # general, specific
-        pass
+        property_id = request.query_params.get('property_id', None)
+        filter_type = request.query_params.get('filter', None)
+
+        filter_params = {
+            Q(property__owners=request.user) | Q(property__tenants=request.user)
+        }
+
+        if filter_type:
+            if filter_type not in ['general', 'incurred']:
+                return Response({"details": "Invalid filter type"}, status=status.HTTP_400_BAD_REQUEST)
+            filter_params.add(Q(expense_type=filter_type))
+
+        if property_id:
+            try:
+                instance = property_models.Property.objects.get(id=property_id)
+            except property_models.Property.DoesNotExist:
+                return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
+                    id=request.user.id).exists():
+                return Response({"details": "You are not an owner or tenant of this property"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            filter_params.add(Q(property=instance))
+
+        qs = property_models.PropertyExpense.objects.filter(
+            *filter_params)
+
+        serializer = property_serializers.ListCreatePropertyExpenseSerializer(qs, many=True)
+        return Response({"details": serializer.data}, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def expenses_rent_validator(request):
+        property_type = request.query_params.get('property_type', None)
+        property_id = request.query_params.get('property_id', None)
+
+        filter_params = {
+            Q(property__owners=request.user) | Q(property__tenants=request.user)
+        }
+
+        if property_type:
+            if property_type not in ['rented', 'owned']:
+                return False, "Invalid property type"
+
+            if property_type == 'rented':
+                filter_params = {
+                    Q(property__tenants=request.user)
+                }
+            else:
+                filter_params = {
+                    Q(property__owners=request.user)
+                }
+
+        if property_id:
+            try:
+                instance = property_models.Property.objects.get(id=property_id)
+            except property_models.Property.DoesNotExist:
+                return False, "Property does not exist"
+
+            if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
+                    id=request.user.id).exists():
+                return False, "You are not an owner or tenant of this property"
+
+            filter_params.add(Q(property=instance))
+
+        return True, filter_params
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='get-total-expenses'
+    )
+    def get_total_expenses(self, request):
+        status_code, resp = self.expenses_rent_validator(request)
+
+        if not status_code:
+            return Response({"details": resp}, status=status.HTTP_400_BAD_REQUEST)
+
+        total_expenses = property_models.PropertyExpense.objects.\
+            filter(*resp).aggregate(total=Sum('amount')).get('total')
+
+        return Response({"details": total_expenses}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='get-total-rent'
+    )
+    def get_total_rent(self, request):
+        status_code, resp = self.expenses_rent_validator(request)
+
+        if not status_code:
+            return Response({"details": resp}, status=status.HTTP_400_BAD_REQUEST)
+
+        total_rent = property_models.PropertyRent.objects.\
+            filter(*resp, rent_status="paid").aggregate(total=Sum('amount_paid')).get('total')
+
+        return Response({"details": total_rent}, status=status.HTTP_200_OK)
+
+

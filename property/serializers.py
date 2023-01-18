@@ -34,6 +34,18 @@ class ListPropertyRentSerializer(serializers.ModelSerializer):
         ]
 
 
+class ListCreatePropertyExpenseSerializer(serializers.ModelSerializer):
+    property = ListPropertySerializer(read_only=True)
+    property_id = serializers.UUIDField(write_only=True, required=True)
+
+    class Meta:
+        model = property_models.PropertyExpense
+        fields = '__all__'
+        extra_kwargs = {
+            'id': {'read_only': True}
+        }
+
+
 class AddPropertySerializer(serializers.Serializer):
     area_choices = [
         ("acres", "acres"),
@@ -51,10 +63,38 @@ class AddPropertySerializer(serializers.Serializer):
                                   allow_null=True, allow_empty=True)
 
     def validate(self, attrs):
+        if not attrs['is_owner']:
+            if not attrs['rent_amount']:
+                raise serializers.ValidationError("Rent amount is required")
+
         qs = property_models.PropertyImages.objects.filter(id__in=attrs['files'])
         if qs.count() != len(attrs['files']):
             raise serializers.ValidationError("File(s) attached not found")
         attrs['files'] = qs
+        return attrs
+
+
+class AddRentPaymentSerializer(serializers.Serializer):
+    request_id = serializers.UUIDField(required=True)
+    amount = serializers.DecimalField(max_digits=13, decimal_places=2, required=True)
+
+    def validate(self, attrs):
+        amount = attrs['amount']
+        try:
+            instance = property_models.PropertyRent.objects.get(id=attrs['request_id'])
+        except property_models.PropertyRent.DoesNotExist:
+            raise serializers.ValidationError("Rent request does not exist")
+
+        if instance.rent_status == 'paid':
+            raise serializers.ValidationError("Rent is already paid")
+
+        if instance.amount < amount:
+            raise serializers.ValidationError("Amount paid cannot be more than amount due")
+
+        elif instance.amount > amount:
+            raise serializers.ValidationError("Amount paid is less than amount due")
+
+        attrs['instance'] = instance
         return attrs
 
 
