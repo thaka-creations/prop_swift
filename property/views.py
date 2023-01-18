@@ -202,10 +202,23 @@ class PropertyViewSet(viewsets.ViewSet):
         # general, specific
         property_id = request.query_params.get('property_id', None)
         filter_type = request.query_params.get('filter', None)
+        date_from = request.query_params.get('date_from', None)
+        date_to = request.query_params.get('date_to', None)
 
         filter_params = {
             Q(property__owners=request.user) | Q(property__tenants=request.user)
         }
+
+        if date_to and date_from:
+            if date_from > date_to:
+                return Response({"details": "Invalid date range"}, status=status.HTTP_400_BAD_REQUEST)
+            filter_params.add(Q(date_incurred__range=[date_from, date_to]))
+
+        elif date_from:
+            filter_params.add(Q(date_incurred__gte=date_from))
+
+        elif date_to:
+            filter_params.add(Q(date_incurred__lte=date_to))
 
         if filter_type:
             if filter_type not in ['general', 'incurred']:
@@ -223,6 +236,7 @@ class PropertyViewSet(viewsets.ViewSet):
                 return Response({"details": "You are not an owner or tenant of this property"},
                                 status=status.HTTP_400_BAD_REQUEST)
             filter_params.add(Q(property=instance))
+
 
         qs = property_models.PropertyExpense.objects.filter(
             *filter_params)
@@ -297,5 +311,30 @@ class PropertyViewSet(viewsets.ViewSet):
             filter(*resp, rent_status="paid").aggregate(total=Sum('amount_paid')).get('total')
 
         return Response({"details": total_rent}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='item-counter'
+    )
+    def item_counter(self, request):
+        status_code, resp = self.expenses_rent_validator(request)
+
+        if not status_code:
+            return Response({"details": resp}, status=status.HTTP_400_BAD_REQUEST)
+
+        filter_type = request.query_params.get('filter', None)
+
+        if not filter_type or filter_type not in ['rent', 'expense']:
+            return Response({"details": "Invalid filter type"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if filter_type == 'rent':
+            counter = property_models.PropertyRent.objects.filter(*resp).count()
+        else:
+            counter = property_models.PropertyExpense.objects.filter(*resp).count()
+
+        return Response({"details": counter}, status=status.HTTP_200_OK)
+
+
 
 
