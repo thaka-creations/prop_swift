@@ -70,15 +70,16 @@ class PropertyRent(BaseModel):
     rent_status_choices = [
         ("paid", "paid"),
         ("unpaid", "unpaid"),
-        ("overdue", "overdue"),
-        ("partially_paid", "partially_paid"),
+        ("overdue", "overdue")
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="property_rent")
     amount = models.DecimalField(max_digits=13, decimal_places=2, blank=True, null=True)
+    amount_paid = models.DecimalField(max_digits=13, decimal_places=2, blank=True, null=True)
+    date_paid = models.DateField(blank=True, null=True)
     start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
+    due_date = models.DateField(blank=True, null=True)  # date rent is due
     rent_status = models.CharField(max_length=255, choices=rent_status_choices, blank=True, null=True)
 
 

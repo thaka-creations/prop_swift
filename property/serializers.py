@@ -17,6 +17,23 @@ class ListPropertySerializer(serializers.ModelSerializer):
         return [host + settings.MEDIA_URL + str(f.file) for f in obj.property_images.all()]
 
 
+class ListPropertyRentSerializer(serializers.ModelSerializer):
+    property = ListPropertySerializer()
+
+    class Meta:
+        model = property_models.PropertyRent
+        fields = [
+            'id',
+            'amount',
+            'amount_paid',
+            'start_date',
+            'due_date',
+            'date_paid',
+            'rent_status',
+            'property'
+        ]
+
+
 class AddPropertySerializer(serializers.Serializer):
     area_choices = [
         ("acres", "acres"),

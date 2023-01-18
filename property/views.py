@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -83,11 +84,35 @@ class PropertyViewSet(viewsets.ViewSet):
         serializer = property_serializers.ListPropertySerializer(qs, many=True)
         return Response({"details": serializer.data}, status=status.HTTP_200_OK)
 
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='list-rentals'
+    )
     def list_rentals(self, request):
         # with date filters and property filters
         # paid, unpaid, overdue
-        pass
+        property_id = request.query_params.get('property_id', None)
+        filter_type = request.query_params.get('filter', None)
 
+        filter_params = {
+            Q(property__owners=request.user) | Q(property__tenants=request.user)
+        }
+
+        if property_id:
+            filter_params.update({'property__id': property_id})
+
+        if filter_type:
+            filter_params.update({'rent_status': filter_type})
+
+        qs = property_models.PropertyRent.objects.filter(
+            *filter_params)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='list-expenses'
+    )
     def list_expenses(self, request):
         # with date filters and property filters
         # general, specific
