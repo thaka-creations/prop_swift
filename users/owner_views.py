@@ -55,10 +55,11 @@ class OwnerViewSet(viewsets.ViewSet):
 
         validated_data = serializer.validated_data
         property_instance = validated_data.pop('property_id')
-        manager_instance = validated_data.pop('manager_id')
+        manager_instance = validated_data.pop('manager')
 
         with transaction.atomic():
             property_instance.managers.remove(manager_instance)
+            manager_instance.delete()
             return Response({"details": "Successfully removed manager"}, status=status.HTTP_200_OK)
 
     @action(
@@ -76,7 +77,7 @@ class OwnerViewSet(viewsets.ViewSet):
         except property_models.Property.DoesNotExist:
             return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if instance.owner != request.user:
+        if not instance.owners.filter(id=request.user.id).exists():
             return Response({"details": "You are not the owner of this property"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = user_serializers.UserProfileSerializer(instance.managers.all(), many=True)

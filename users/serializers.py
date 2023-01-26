@@ -48,7 +48,7 @@ class AddPropertyManagerSerializer(RegistrationSerializer):
         except Property.DoesNotExist:
             raise serializers.ValidationError("Property does not exist")
 
-        if property_instance.owner != self.context['user']:
+        if not property_instance.owners.filter(id=self.context['user'].id).exists():
             raise serializers.ValidationError("You are not the owner of this property")
 
         attrs['property_id'] = property_instance
@@ -65,7 +65,7 @@ class RemovePropertyManagerSerializer(serializers.Serializer):
         except Property.DoesNotExist:
             raise serializers.ValidationError("Property does not exist")
 
-        if property_instance.owner != self.context['user']:
+        if not property_instance.owners.filter(id=self.context['user'].id).exists():
             raise serializers.ValidationError("You are not the owner of this property")
 
         try:
@@ -73,7 +73,7 @@ class RemovePropertyManagerSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError("Manager does not exist")
 
-        if property_instance.managers.filter(id=manager_instance.id).exists():
+        if not property_instance.managers.filter(id=manager_instance.id).exists():
             raise serializers.ValidationError("Manager is not assigned to this property")
 
         attrs['property_id'] = property_instance
