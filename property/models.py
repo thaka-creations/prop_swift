@@ -76,14 +76,6 @@ class PropertyExpense(BaseModel):
         ordering = ['-created_at']
 
 
-class PropertyImages(BaseModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="property_images", null=True)
-    expense = models.ForeignKey("PropertyExpense", on_delete=models.CASCADE, related_name="expense_images", null=True)
-    file = models.FileField(upload_to=file_upload, blank=True, null=True)
-    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="property_images_uploader", null=True)
-
-
 class PropertyRent(BaseModel):
     rent_status_choices = [
         ("paid", "paid"),
@@ -99,3 +91,14 @@ class PropertyRent(BaseModel):
     start_date = models.DateField(blank=True, null=True)
     due_date = models.DateField(blank=True, null=True)  # date rent is due
     rent_status = models.CharField(max_length=255, choices=rent_status_choices, blank=True, null=True)
+    receipt = models.CharField(max_length=1000, blank=True, null=True)
+
+
+class PropertyImages(BaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="property_images", null=True)
+    expense = models.ForeignKey("PropertyExpense", on_delete=models.CASCADE, related_name="expense_images", null=True)
+    rent = models.ForeignKey("PropertyRent", on_delete=models.CASCADE, related_name="rent_images", null=True)
+    file = models.FileField(upload_to=file_upload, blank=True, null=True)
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="property_images_uploader", null=True)
+

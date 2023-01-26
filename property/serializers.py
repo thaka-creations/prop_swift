@@ -101,6 +101,9 @@ class AddPropertySerializer(serializers.Serializer):
 class AddRentPaymentSerializer(serializers.Serializer):
     request_id = serializers.UUIDField(required=True)
     amount = serializers.DecimalField(max_digits=13, decimal_places=2, required=True)
+    receipt = serializers.CharField(required=True)
+    files = serializers.ListField(required=True, child=serializers.UUIDField(),
+                                    allow_null=True, allow_empty=True)
 
     def validate(self, attrs):
         amount = attrs['amount']
@@ -117,6 +120,10 @@ class AddRentPaymentSerializer(serializers.Serializer):
 
         elif instance.amount > amount:
             raise serializers.ValidationError("Amount paid is less than amount due")
+
+        qs = property_models.PropertyImages.objects.filter(id__in=attrs['files'])
+        if qs.count() != len(attrs['files']):
+            raise serializers.ValidationError("File(s) attached not found")
 
         attrs['instance'] = instance
         return attrs

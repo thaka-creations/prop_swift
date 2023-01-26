@@ -90,6 +90,8 @@ class PropertyViewSet(viewsets.ViewSet):
         validated_data = serializer.validated_data
         instance = validated_data['instance']
         amount = validated_data['amount']
+        receipt = validated_data['receipt']
+        files = validated_data['files']
 
         property_instance = instance.property
 
@@ -100,9 +102,13 @@ class PropertyViewSet(viewsets.ViewSet):
 
         with transaction.atomic():
             instance.amount_paid = amount
+            instance.receipt = receipt
             instance.date_paid = timezone.now()
             instance.rent_status = "paid"
             instance.save()
+
+            if files.exists():
+                files.update(rent=instance)
             return Response({"details": "Rent paid successfully"}, status=status.HTTP_200_OK)
 
     @action(
