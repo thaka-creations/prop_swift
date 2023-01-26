@@ -34,16 +34,40 @@ class ListPropertyRentSerializer(serializers.ModelSerializer):
         ]
 
 
-class ListCreatePropertyExpenseSerializer(serializers.ModelSerializer):
+class ListPropertyExpenseSerializer(serializers.ModelSerializer):
     property = ListPropertySerializer(read_only=True)
+    files = serializers.SerializerMethodField()
+
+    class Meta:
+        model = property_models.PropertyExpense
+        fields = '__all__'
+
+    @staticmethod
+    def get_files(obj):
+        host = os.environ.get('CALLBACK_SERVICE', None)
+        return [host + settings.MEDIA_URL + str(f.file) for f in obj.expense_images.all()]
+
+
+class CreatePropertyExpenseSerializer(serializers.ModelSerializer):
     property_id = serializers.UUIDField(write_only=True, required=True)
+    receipt = serializers.CharField(required=True)
+    files = serializers.ListField(required=True, child=serializers.UUIDField(),
+                                  allow_null=True, allow_empty=True)
 
     class Meta:
         model = property_models.PropertyExpense
         fields = '__all__'
         extra_kwargs = {
-            'id': {'read_only': True}
+            'id': {'read_only': True},
+            'property': {'read_only': True},
         }
+
+    def validate(self, attrs):
+        qs = property_models.PropertyImages.objects.filter(id__in=attrs['files'])
+        if qs.count() != len(attrs['files']):
+            raise serializers.ValidationError("File(s) attached not found")
+        attrs['files'] = qs
+        return attrs
 
 
 class AddPropertySerializer(serializers.Serializer):

@@ -111,12 +111,13 @@ class PropertyViewSet(viewsets.ViewSet):
         url_path='add-expense'
     )
     def add_expense(self, request):
-        serializer = property_serializers.ListCreatePropertyExpenseSerializer(data=request.data)
+        serializer = property_serializers.CreatePropertyExpenseSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
         property_id = validated_data.pop('property_id')
+        files = validated_data.pop('files')
 
         try:
             instance = property_models.Property.objects.get(id=property_id)
@@ -131,7 +132,9 @@ class PropertyViewSet(viewsets.ViewSet):
         validated_data['property'] = instance
 
         with transaction.atomic():
-            serializer.save(**validated_data)
+            expense_instance = serializer.save(**validated_data)
+            if files.exists():
+                files.update(expense=expense_instance)
             return Response({"details": "Expense added successfully"}, status=status.HTTP_200_OK)
 
     @action(
@@ -253,7 +256,7 @@ class PropertyViewSet(viewsets.ViewSet):
         qs = property_models.PropertyExpense.objects.filter(
             *filter_params)
 
-        serializer = property_serializers.ListCreatePropertyExpenseSerializer(qs, many=True)
+        serializer = property_serializers.ListPropertyExpenseSerializer(qs, many=True)
         return Response({"details": serializer.data}, status=status.HTTP_200_OK)
 
     @staticmethod
