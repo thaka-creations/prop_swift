@@ -57,6 +57,7 @@ class Property(BaseModel):
     rent_amount = models.DecimalField(max_digits=13, decimal_places=2, blank=True, null=True)
     owners = models.ManyToManyField(User, related_name="property_owners")
     tenants = models.ManyToManyField(User, related_name="property_tenants")
+    managers = models.ManyToManyField(User, related_name="property_managers")
 
 
 class PropertyExpense(BaseModel):

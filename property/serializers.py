@@ -126,6 +126,7 @@ class AddRentPaymentSerializer(serializers.Serializer):
             raise serializers.ValidationError("File(s) attached not found")
 
         attrs['instance'] = instance
+        attrs['files'] = qs
         return attrs
 
 
