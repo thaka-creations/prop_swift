@@ -55,3 +55,33 @@ class AddPropertyManagerSerializer(RegistrationSerializer):
         return attrs
 
 
+class RemovePropertyManagerSerializer(serializers.Serializer):
+    property_id = serializers.UUIDField(required=True)
+    manager = serializers.UUIDField(required=True)
+
+    def validate(self, attrs):
+        try:
+            property_instance = Property.objects.get(id=attrs['property_id'])
+        except Property.DoesNotExist:
+            raise serializers.ValidationError("Property does not exist")
+
+        if property_instance.owner != self.context['user']:
+            raise serializers.ValidationError("You are not the owner of this property")
+
+        try:
+            manager_instance = User.objects.get(id=attrs['manager'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Manager does not exist")
+
+        if property_instance.managers.filter(id=manager_instance.id).exists():
+            raise serializers.ValidationError("Manager is not assigned to this property")
+
+        attrs['property_id'] = property_instance
+        attrs['manager'] = manager_instance
+        return attrs
+
+
+
+
+
+
