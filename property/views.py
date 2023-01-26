@@ -166,6 +166,16 @@ class PropertyViewSet(viewsets.ViewSet):
     @action(
         methods=['GET'],
         detail=False,
+        url_path='list-managed-properties'
+    )
+    def list_managed_properties(self, request):
+        qs = property_models.Property.objects.filter(managers=request.user)
+        serializer = property_serializers.ListPropertySerializer(qs, many=True)
+        return Response({"details": serializer.data}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['GET'],
+        detail=False,
         url_path='list-rentals'
     )
     def list_rentals(self, request):
