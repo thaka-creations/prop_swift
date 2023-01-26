@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'users',
     'property',
+    'task'
 ]
 
 REST_FRAMEWORK = {
