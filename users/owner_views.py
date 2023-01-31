@@ -3,6 +3,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
+from shared_utils import error_utils
 from . import serializers as user_serializers, models as user_models, utils as user_utils
 from property import models as property_models
 
@@ -22,7 +24,7 @@ class OwnerViewSet(viewsets.ViewSet):
             data=request.data, context={'user': request.user}
         )
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
         property_instance = validated_data.pop('property_id')
@@ -51,7 +53,7 @@ class OwnerViewSet(viewsets.ViewSet):
         )
 
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
         property_instance = validated_data.pop('property_id')

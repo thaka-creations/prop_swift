@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from oauth2_provider.models import get_application_model
+
+from shared_utils import error_utils
 from . import serializers as user_serializers, models as user_models, utils as user_utils
 
 oauth2_user = user_utils.ApplicationUser()
@@ -15,7 +17,7 @@ class AuthenticationViewSet(viewsets.ViewSet):
     def login(self, request):
         serializer = user_serializers.LoginSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
         username = validated_data['username']
@@ -56,7 +58,7 @@ class AuthenticationViewSet(viewsets.ViewSet):
     def register(self, request):
         serializer = user_serializers.RegistrationSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             validated_data = serializer.validated_data

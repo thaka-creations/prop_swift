@@ -3,6 +3,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+
+from shared_utils import error_utils
 from . import models as task_models, serializers as task_serializers
 
 
@@ -31,7 +33,7 @@ class TaskViewSet(viewsets.ViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             serializer.save(

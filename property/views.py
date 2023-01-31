@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from shared_utils import error_utils
 from . import models as property_models, serializers as property_serializers
 
 
@@ -48,7 +49,7 @@ class PropertyViewSet(viewsets.ViewSet):
     def add_property(self, request):
         serializer = property_serializers.AddPropertySerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
         is_owner = validated_data.pop('is_owner')
@@ -85,7 +86,7 @@ class PropertyViewSet(viewsets.ViewSet):
     def add_rent_payment(self, request):
         serializer = property_serializers.AddRentPaymentSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
         instance = validated_data['instance']
@@ -119,7 +120,7 @@ class PropertyViewSet(viewsets.ViewSet):
     def add_expense(self, request):
         serializer = property_serializers.CreatePropertyExpenseSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
         property_id = validated_data.pop('property_id')
