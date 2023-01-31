@@ -17,6 +17,12 @@ class ListPropertySerializer(serializers.ModelSerializer):
         return [host + settings.MEDIA_URL + str(f.file) for f in obj.property_images.all()]
 
 
+class ListMyPropertiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = property_models.Property
+        fields = ['id', 'name']
+
+
 class ListPropertyRentSerializer(serializers.ModelSerializer):
     property = ListPropertySerializer()
 
