@@ -145,6 +145,42 @@ class PropertyViewSet(viewsets.ViewSet):
             return Response({"details": "Expense added successfully"}, status=status.HTTP_200_OK)
 
     @action(
+        methods=['POST'],
+        detail=False,
+        url_path='add-other-receipt'
+    )
+    def add_other_receipt(self, request):
+        serializer = property_serializers.CreateOtherReceiptsSerializer(
+            data=request.data
+        )
+
+        if not serializer.is_valid():
+            return Response({"details": error_utils.format_error(serializer.errors)},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+        property_id = validated_data.pop('property_id')
+        files = validated_data.pop('files')
+
+        try:
+            instance = property_models.Property.objects.get(id=property_id)
+        except property_models.Property.DoesNotExist:
+            return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not instance.owners.filter(id=request.user.id).exists() and \
+                not instance.tenants.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner or tenant of this property"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data['property'] = instance
+
+        with transaction.atomic():
+            expense_instance = serializer.save(**validated_data)
+            if files.exists():
+                files.update(expense=expense_instance)
+            return Response({"details": "Expense added successfully"}, status=status.HTTP_200_OK)
+
+    @action(
         methods=['GET'],
         detail=False,
         url_path='list-owned-properties'

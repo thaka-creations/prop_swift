@@ -56,7 +56,7 @@ class ListPropertyExpenseSerializer(serializers.ModelSerializer):
 
 class CreatePropertyExpenseSerializer(serializers.ModelSerializer):
     property_id = serializers.UUIDField(write_only=True, required=True)
-    receipt = serializers.CharField(required=True)
+    receipt = serializers.CharField(required=False)
     files = serializers.ListField(required=True, child=serializers.UUIDField(),
                                   allow_null=True, allow_empty=True)
 
@@ -66,6 +66,27 @@ class CreatePropertyExpenseSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'id': {'read_only': True},
             'property': {'read_only': True},
+        }
+
+    def validate(self, attrs):
+        qs = property_models.PropertyImages.objects.filter(id__in=attrs['files'])
+        if qs.count() != len(attrs['files']):
+            raise serializers.ValidationError("File(s) attached not found")
+        attrs['files'] = qs
+        return attrs
+
+
+class CreateOtherReceiptsSerializer(serializers.ModelSerializer):
+    property_id = serializers.UUIDField(write_only=True, required=True)
+    receipt = serializers.CharField(required=True)
+    files = serializers.ListField(required=True, child=serializers.UUIDField(),
+                                  allow_null=True, allow_empty=True)
+
+    class Meta:
+        model = property_models.OtherReceipts
+        fields = '__all__'
+        extra_kwargs = {
+            'id': {'read_only': True},
         }
 
     def validate(self, attrs):
