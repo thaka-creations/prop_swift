@@ -54,6 +54,19 @@ class ListPropertyExpenseSerializer(serializers.ModelSerializer):
         return [host + settings.MEDIA_URL + str(f.file) for f in obj.expense_images.all()]
 
 
+class ListOtherReceiptsSerializer(serializers.ModelSerializer):
+    files = serializers.SerializerMethodField()
+
+    class Meta:
+        model = property_models.OtherReceipts
+        fields = '__all__'
+
+    @staticmethod
+    def get_files(obj):
+        host = os.environ.get('CALLBACK_SERVICE', None)
+        return [host + settings.MEDIA_URL + str(f.file) for f in obj.other_receipt_images.all()]
+
+
 class CreatePropertyExpenseSerializer(serializers.ModelSerializer):
     property_id = serializers.UUIDField(write_only=True, required=True)
     receipt = serializers.CharField(required=False)
@@ -87,6 +100,7 @@ class CreateOtherReceiptsSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {
             'id': {'read_only': True},
+            'property': {'read_only': True},
         }
 
     def validate(self, attrs):

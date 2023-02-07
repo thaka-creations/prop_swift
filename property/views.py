@@ -177,8 +177,8 @@ class PropertyViewSet(viewsets.ViewSet):
         with transaction.atomic():
             expense_instance = serializer.save(**validated_data)
             if files.exists():
-                files.update(expense=expense_instance)
-            return Response({"details": "Expense added successfully"}, status=status.HTTP_200_OK)
+                files.update(other_receipt=expense_instance)
+            return Response({"details": "Other receipt expenses added successfully"}, status=status.HTTP_200_OK)
 
     @action(
         methods=['GET'],
@@ -322,6 +322,49 @@ class PropertyViewSet(viewsets.ViewSet):
         serializer = property_serializers.ListPropertyExpenseSerializer(qs, many=True)
         return Response({"details": serializer.data}, status=status.HTTP_200_OK)
 
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='list-other-receipts'
+    )
+    def list_other_receipts(self, request):
+        property_id = request.query_params.get('property_id', None)
+        date_from = request.query_params.get('date_from', None)
+        date_to = request.query_params.get('date_to', None)
+
+        filter_params = {
+            Q(property__owners=request.user) | Q(property__tenants=request.user)
+        }
+
+        if date_to and date_from:
+            if date_from > date_to:
+                return Response({"details": "Invalid date range"}, status=status.HTTP_400_BAD_REQUEST)
+            filter_params.add(Q(date_incurred__range=[date_from, date_to]))
+
+        elif date_from:
+            filter_params.add(Q(date_incurred__gte=date_from))
+
+        elif date_to:
+            filter_params.add(Q(date_incurred__lte=date_to))
+
+        if property_id:
+            try:
+                instance = property_models.Property.objects.get(id=property_id)
+            except property_models.Property.DoesNotExist:
+                return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
+                    id=request.user.id).exists():
+                return Response({"details": "You are not an owner or tenant of this property"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            filter_params.add(Q(property=instance))
+
+        qs = property_models.OtherReceipts.objects.filter(
+            *filter_params)
+
+        serializer = property_serializers.ListOtherReceiptsSerializer(qs, many=True)
+        return Response({"details": serializer.data}, status=status.HTTP_200_OK)
+
     @staticmethod
     def expenses_rent_validator(request):
         property_type = request.query_params.get('property_type', None)
@@ -377,6 +420,22 @@ class PropertyViewSet(viewsets.ViewSet):
     @action(
         methods=['GET'],
         detail=False,
+        url_path='get-total-other-receipts'
+    )
+    def get_total_other_receipts(self, request):
+        status_code, resp = self.expenses_rent_validator(request)
+
+        if not status_code:
+            return Response({"details": resp}, status=status.HTTP_400_BAD_REQUEST)
+
+        total_other_receipts = property_models.OtherReceipts.objects. \
+            filter(*resp).aggregate(total=Sum('amount')).get('total')
+
+        return Response({"details": total_other_receipts}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['GET'],
+        detail=False,
         url_path='get-total-rent'
     )
     def get_total_rent(self, request):
@@ -403,7 +462,7 @@ class PropertyViewSet(viewsets.ViewSet):
 
         filter_type = request.query_params.get('filter', None)
 
-        if not filter_type or filter_type not in ['rent', 'expense']:
+        if not filter_type or filter_type not in ['rent', 'expense', 'other_receipts']:
             return Response({"details": "Invalid filter type"}, status=status.HTTP_400_BAD_REQUEST)
 
         if filter_type == 'rent':
