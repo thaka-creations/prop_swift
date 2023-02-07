@@ -81,6 +81,31 @@ class PropertyViewSet(viewsets.ViewSet):
     @action(
         methods=['POST'],
         detail=False,
+        url_path='remove-property'
+    )
+    def remove_property(self, request):
+        request_id = self.request.data.get('request_id')
+        if not request_id:
+            return Response({"details": "Request id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            instance = property_models.Property.objects.get(id=request_id)
+        except property_models.Property.DoesNotExist:
+            return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # check if owner or tenant
+        if not instance.owners.filter(id=request.user.id).exists() and \
+                not instance.tenants.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner or tenant of this property"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            instance.delete()
+            return Response({"details": "Property removed successfully"}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['POST'],
+        detail=False,
         url_path='add-rent-payment'
     )
     def add_rent_payment(self, request):
@@ -93,6 +118,7 @@ class PropertyViewSet(viewsets.ViewSet):
         amount = validated_data['amount']
         receipt = validated_data['receipt']
         files = validated_data['files']
+        payment_date = validated_data['payment_date']
 
         property_instance = instance.property
 
@@ -104,7 +130,7 @@ class PropertyViewSet(viewsets.ViewSet):
         with transaction.atomic():
             instance.amount_paid = amount
             instance.receipt = receipt
-            instance.date_paid = timezone.now()
+            instance.date_paid = payment_date
             instance.rent_status = "paid"
             instance.save()
 
@@ -143,6 +169,32 @@ class PropertyViewSet(viewsets.ViewSet):
             if files.exists():
                 files.update(expense=expense_instance)
             return Response({"details": "Expense added successfully"}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        url_path='delete-expense'
+    )
+    def delete_expense(self, request):
+        request_id = self.request.data.get('request_id')
+        if not request_id:
+            return Response({"details": "Request id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            instance = property_models.PropertyExpense.objects.get(id=request_id)
+        except property_models.PropertyExpense.DoesNotExist:
+            return Response({"details": "Expense does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        property_instance = instance.property
+
+        if not property_instance.owners.filter(id=request.user.id).exists() and \
+                not property_instance.tenants.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner or tenant of this property"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            instance.delete()
+            return Response({"details": "Expense deleted successfully"}, status=status.HTTP_200_OK)
 
     @action(
         methods=['POST'],
@@ -467,7 +519,9 @@ class PropertyViewSet(viewsets.ViewSet):
 
         if filter_type == 'rent':
             counter = property_models.PropertyRent.objects.filter(*resp).count()
-        else:
+        elif filter_type == 'expense':
             counter = property_models.PropertyExpense.objects.filter(*resp).count()
+        else:
+            counter = property_models.OtherReceipts.objects.filter(*resp).count()
 
         return Response({"details": counter}, status=status.HTTP_200_OK)

@@ -143,6 +143,7 @@ class AddRentPaymentSerializer(serializers.Serializer):
     request_id = serializers.UUIDField(required=True)
     amount = serializers.DecimalField(max_digits=13, decimal_places=2, required=True)
     receipt = serializers.CharField(required=True)
+    payment_date = serializers.DateField(required=True)
     files = serializers.ListField(required=True, child=serializers.UUIDField(),
                                     allow_null=True, allow_empty=True)
 
