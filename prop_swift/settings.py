@@ -152,3 +152,10 @@ MEDIA_URL = '/media/'
 REGISTRATION_OTP_EXPIRY_TIME = os.environ.get('REGISTRATION_OTP_EXPIRY_TIME')
 
 ACCESS_TOKEN_EXPIRY = os.environ.get('ACCESS_TOKEN_EXPIRY')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")

@@ -3,8 +3,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from rest_framework.views import APIView
 
-from shared_utils import error_utils
+from shared_utils import error_utils, notification_utils
 from . import models as task_models, serializers as task_serializers
 
 
@@ -51,5 +52,17 @@ class TaskViewSet(viewsets.ViewSet):
 
         task.delete()
         return Response({"details": "Task deleted successfully"}, status=status.HTTP_200_OK)
+
+
+class EmailHandlerView(APIView):
+    def post(self, request):
+        # do something
+        recipient = self.request.data.get("recipient")
+        notification_utils.send_email(
+            subject="Test email",
+            message="This is a test email",
+            recipient=recipient
+        )
+        return Response({"details": "Email sent successfully"}, status=status.HTTP_200_OK)
 
 
