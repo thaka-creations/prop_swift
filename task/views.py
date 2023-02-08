@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import transaction
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -34,7 +35,8 @@ class TaskViewSet(viewsets.ViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
-            return Response({"details": error_utils.format_error(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"details": error_utils.format_error(serializer.errors)},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             serializer.save(
@@ -53,6 +55,13 @@ class TaskViewSet(viewsets.ViewSet):
         task.delete()
         return Response({"details": "Task deleted successfully"}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=["GET"], url_path="list-due-tasks")
+    def list_due_tasks(self, request):
+        queryset = self.get_queryset().filter(actor=self.request.user,
+                                              due_date=datetime.now())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"details": serializer.data}, status=status.HTTP_200_OK)
+
 
 class EmailHandlerView(APIView):
     def post(self, request):
@@ -64,5 +73,3 @@ class EmailHandlerView(APIView):
             recipient=recipient
         )
         return Response({"details": "Email sent successfully"}, status=status.HTTP_200_OK)
-
-
