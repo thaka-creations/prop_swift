@@ -32,7 +32,7 @@ class OwnerViewSet(viewsets.ViewSet):
         with transaction.atomic():
             password = validated_data.pop('password')
             # create user
-            instance = user_models.User.objects.create(**validated_data)
+            instance = user_models.User.objects.create(**validated_data, is_manager=True)
             instance.set_password(password)
             instance.save()
 

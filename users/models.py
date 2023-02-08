@@ -28,6 +28,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=255)
     middle_name = models.CharField(max_length=255, null=True, blank=True)
     account_status = models.CharField(max_length=255, choices=ACCOUNT_STATUS, default='ACTIVE')
+    is_manager = models.BooleanField(default=False)
 
     USERNAME_FIELD = "username"
 

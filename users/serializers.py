@@ -30,7 +30,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['user_id', 'first_name', 'last_name', 'middle_name', 'username']
+        fields = ['user_id', 'first_name', 'last_name', 'middle_name', 'username', 'is_manager']
 
     @staticmethod
     def get_user_id(obj):
