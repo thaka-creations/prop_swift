@@ -199,6 +199,33 @@ class PropertyViewSet(viewsets.ViewSet):
     @action(
         methods=['POST'],
         detail=False,
+        url_path='delete-other-receipt'
+    )
+    def delete_other_receipt(self, request):
+        request_id = self.request.data.get('request_id')
+        if not request_id:
+            return Response({"details": "Request id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            instance = property_models.OtherReceipts.objects.get(id=request_id)
+        except property_models.OtherReceipts.DoesNotExist:
+            return Response({"details": "Other receipt does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        property_instance = instance.property
+
+        if not property_instance.owners.filter(id=request.user.id).exists() and \
+                not property_instance.tenants.filter(id=request.user.id).exists() and \
+                not property_instance.managers.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner or tenant of this property"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            instance.delete()
+            return Response({"details": "Other receipt deleted successfully"}, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['POST'],
+        detail=False,
         url_path='add-other-receipt'
     )
     def add_other_receipt(self, request):
@@ -220,7 +247,8 @@ class PropertyViewSet(viewsets.ViewSet):
             return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not instance.owners.filter(id=request.user.id).exists() and \
-                not instance.tenants.filter(id=request.user.id).exists():
+                not instance.tenants.filter(id=request.user.id).exists() \
+                and not instance.managers.filter(id=request.user.id).exists():
             return Response({"details": "You are not an owner or tenant of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
