@@ -95,8 +95,9 @@ class PropertyViewSet(viewsets.ViewSet):
 
         # check if owner or tenant
         if not instance.owners.filter(id=request.user.id).exists() and \
-                not instance.tenants.filter(id=request.user.id).exists():
-            return Response({"details": "You are not an owner or tenant of this property"},
+                not instance.tenants.filter(id=request.user.id).exists() \
+                and not instance.manager.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
@@ -123,8 +124,9 @@ class PropertyViewSet(viewsets.ViewSet):
         property_instance = instance.property
 
         if not property_instance.owners.filter(id=request.user.id).exists() and \
-                not property_instance.tenants.filter(id=request.user.id).exists():
-            return Response({"details": "You are not an owner or tenant of this property"},
+                not property_instance.tenants.filter(id=request.user.id).exists()\
+                and not property_instance.manager.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
@@ -158,8 +160,9 @@ class PropertyViewSet(viewsets.ViewSet):
             return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not instance.owners.filter(id=request.user.id).exists() and \
-                not instance.tenants.filter(id=request.user.id).exists():
-            return Response({"details": "You are not an owner or tenant of this property"},
+                not instance.tenants.filter(id=request.user.id).exists() and \
+                not instance.manager.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
         validated_data['property'] = instance
@@ -188,8 +191,9 @@ class PropertyViewSet(viewsets.ViewSet):
         property_instance = instance.property
 
         if not property_instance.owners.filter(id=request.user.id).exists() and \
-                not property_instance.tenants.filter(id=request.user.id).exists():
-            return Response({"details": "You are not an owner or tenant of this property"},
+                not property_instance.tenants.filter(id=request.user.id).exists() and \
+                not property_instance.manager.filter(id=request.user.id).exists():
+            return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
@@ -216,7 +220,7 @@ class PropertyViewSet(viewsets.ViewSet):
         if not property_instance.owners.filter(id=request.user.id).exists() and \
                 not property_instance.tenants.filter(id=request.user.id).exists() and \
                 not property_instance.managers.filter(id=request.user.id).exists():
-            return Response({"details": "You are not an owner or tenant of this property"},
+            return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
@@ -249,7 +253,7 @@ class PropertyViewSet(viewsets.ViewSet):
         if not instance.owners.filter(id=request.user.id).exists() and \
                 not instance.tenants.filter(id=request.user.id).exists() \
                 and not instance.managers.filter(id=request.user.id).exists():
-            return Response({"details": "You are not an owner or tenant of this property"},
+            return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
         validated_data['property'] = instance
@@ -340,8 +344,8 @@ class PropertyViewSet(viewsets.ViewSet):
                 return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
-                    id=request.user.id).exists():
-                return Response({"details": "You are not an owner or tenant of this property"},
+                    id=request.user.id).exists() and not instance.managers.filter(id=request.user.id).exists():
+                return Response({"details": "You are not an owner, tenant or manager of this property"},
                                 status=status.HTTP_400_BAD_REQUEST)
             filter_params.add(Q(property=instance))
 
@@ -391,8 +395,8 @@ class PropertyViewSet(viewsets.ViewSet):
                 return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
-                    id=request.user.id).exists():
-                return Response({"details": "You are not an owner or tenant of this property"},
+                    id=request.user.id).exists() and not instance.managers.filter(id=request.user.id).exists():
+                return Response({"details": "You are not an owner, tenant or manager of this property"},
                                 status=status.HTTP_400_BAD_REQUEST)
             filter_params.add(Q(property=instance))
 
@@ -434,8 +438,8 @@ class PropertyViewSet(viewsets.ViewSet):
                 return Response({"details": "Property does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
-                    id=request.user.id).exists():
-                return Response({"details": "You are not an owner or tenant of this property"},
+                    id=request.user.id).exists() and not instance.managers.filter(id=request.user.id).exists():
+                return Response({"details": "You are not an owner, tenant or manager of this property"},
                                 status=status.HTTP_400_BAD_REQUEST)
             filter_params.add(Q(property=instance))
 
@@ -451,7 +455,8 @@ class PropertyViewSet(viewsets.ViewSet):
         property_id = request.query_params.get('property_id', None)
 
         filter_params = {
-            Q(property__owners=request.user) | Q(property__tenants=request.user)
+            Q(property__owners=request.user) | Q(property__tenants=request.user) |
+            Q(property__managers=request.user)
         }
 
         if property_type:
@@ -474,8 +479,8 @@ class PropertyViewSet(viewsets.ViewSet):
                 return False, "Property does not exist"
 
             if not instance.owners.filter(id=request.user.id).exists() and not instance.tenants.filter(
-                    id=request.user.id).exists():
-                return False, "You are not an owner or tenant of this property"
+                    id=request.user.id).exists() and not instance.managers.filter(id=request.user.id).exists():
+                return False, "You are not an owner, tenant or manager of this property"
 
             filter_params.add(Q(property=instance))
 
