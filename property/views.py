@@ -96,7 +96,7 @@ class PropertyViewSet(viewsets.ViewSet):
         # check if owner or tenant
         if not instance.owners.filter(id=request.user.id).exists() and \
                 not instance.tenants.filter(id=request.user.id).exists() \
-                and not instance.manager.filter(id=request.user.id).exists():
+                and not instance.managers.filter(id=request.user.id).exists():
             return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -125,7 +125,7 @@ class PropertyViewSet(viewsets.ViewSet):
 
         if not property_instance.owners.filter(id=request.user.id).exists() and \
                 not property_instance.tenants.filter(id=request.user.id).exists()\
-                and not property_instance.manager.filter(id=request.user.id).exists():
+                and not property_instance.managers.filter(id=request.user.id).exists():
             return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -161,7 +161,7 @@ class PropertyViewSet(viewsets.ViewSet):
 
         if not instance.owners.filter(id=request.user.id).exists() and \
                 not instance.tenants.filter(id=request.user.id).exists() and \
-                not instance.manager.filter(id=request.user.id).exists():
+                not instance.managers.filter(id=request.user.id).exists():
             return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -192,7 +192,7 @@ class PropertyViewSet(viewsets.ViewSet):
 
         if not property_instance.owners.filter(id=request.user.id).exists() and \
                 not property_instance.tenants.filter(id=request.user.id).exists() and \
-                not property_instance.manager.filter(id=request.user.id).exists():
+                not property_instance.managers.filter(id=request.user.id).exists():
             return Response({"details": "You are not an owner, tenant or manager of this property"},
                             status=status.HTTP_400_BAD_REQUEST)
 
