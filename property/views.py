@@ -290,7 +290,8 @@ class PropertyViewSet(viewsets.ViewSet):
         url_path='list-my-properties'
     )
     def list_my_properties(self, request):
-        qs = property_models.Property.objects.filter(Q(owners=request.user) | Q(tenants=request.user))
+        qs = property_models.Property.objects.filter(
+            Q(owners=request.user) | Q(tenants=request.user) | Q(managers=request.user))
         serializer = property_serializers.ListMyPropertiesSerializer(qs, many=True)
         return Response({"details": serializer.data}, status=status.HTTP_200_OK)
 
