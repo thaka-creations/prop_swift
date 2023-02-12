@@ -259,9 +259,9 @@ class PropertyViewSet(viewsets.ViewSet):
         validated_data['property'] = instance
 
         with transaction.atomic():
-            expense_instance = serializer.save(**validated_data)
+            instance = serializer.save(**validated_data)
             if files.exists():
-                files.update(other_receipt=expense_instance)
+                files.update(other_receipt=instance)
             return Response({"details": "Other receipt expenses added successfully"}, status=status.HTTP_200_OK)
 
     @action(
@@ -319,7 +319,7 @@ class PropertyViewSet(viewsets.ViewSet):
         date_to = request.query_params.get('date_to', None)
 
         filter_params = {
-            Q(property__owners=request.user) | Q(property__tenants=request.user)
+            Q(property__owners=request.user) | Q(property__tenants=request.user) | Q(property__managers=request.user)
         }
 
         if date_to and date_from:
@@ -370,7 +370,7 @@ class PropertyViewSet(viewsets.ViewSet):
         date_to = request.query_params.get('date_to', None)
 
         filter_params = {
-            Q(property__owners=request.user) | Q(property__tenants=request.user)
+            Q(property__owners=request.user) | Q(property__tenants=request.user) | Q(property__managers=request.user)
         }
 
         if date_to and date_from:
@@ -418,7 +418,7 @@ class PropertyViewSet(viewsets.ViewSet):
         date_to = request.query_params.get('date_to', None)
 
         filter_params = {
-            Q(property__owners=request.user) | Q(property__tenants=request.user)
+            Q(property__owners=request.user) | Q(property__tenants=request.user) | Q(property__managers=request.user)
         }
 
         if date_to and date_from:
