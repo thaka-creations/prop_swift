@@ -25,6 +25,7 @@ class ListMyPropertiesSerializer(serializers.ModelSerializer):
 
 class ListPropertyRentSerializer(serializers.ModelSerializer):
     property = ListPropertySerializer()
+    payment_files = serializers.SerializerMethodField()
 
     class Meta:
         model = property_models.PropertyRent
@@ -36,8 +37,14 @@ class ListPropertyRentSerializer(serializers.ModelSerializer):
             'due_date',
             'date_paid',
             'rent_status',
-            'property'
+            'property',
+            'payment_files'
         ]
+
+    @staticmethod
+    def get_payment_files(obj):
+        host = os.environ.get('CALLBACK_SERVICE', None)
+        return [host + settings.MEDIA_URL + str(f.file) for f in obj.rent_images.all()]
 
 
 class ListPropertyExpenseSerializer(serializers.ModelSerializer):
