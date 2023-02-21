@@ -6,14 +6,14 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # make directory
-RUN mkdir /analytics
-WORKDIR /analytics
+RUN mkdir /prop_swift
+WORKDIR /prop_swift
 
 # install dependencies
 RUN pip install --upgrade pip
-COPY ./requirements.txt /analytics/
+COPY ./requirements.txt /prop_swift/
 RUN pip install -r requirements.txt
 
 # copy project
-COPY . /analytics/
+COPY . /prop_swift/
 
