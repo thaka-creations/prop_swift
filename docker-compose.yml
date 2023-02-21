@@ -1,16 +1,14 @@
-version: '3.8'
-
+version: "3.5"
 services:
-  prop_swift_gateway:
+  gateway:
     env_file:
       - .env
     build: .
-    image: prop_swift_service_image:latest
-    command: python3 manage.py runserver 0.0.0.0:8000
+    image: prop_swift_image:latest
+    command: bash -c "python manage.py runserver 0.0.0.0:5704"
     ports:
-      - 8000:8000
+      - "5704:5704"
     deploy:
-      replicas: 3
       update_config:
         parallelism: 1
         max_failure_ratio: 0
@@ -19,13 +17,13 @@ services:
       restart_policy:
         max_attempts: 3
         condition: on-failure
+      replicas: 3
       placement:
         constraints: [node.role == manager]
     volumes:
       - .:/src
     networks:
-        - prop_network
+      - prop_network
 networks:
-    prop_network:
-      external: true
-
+  prop_network:
+    external: true
