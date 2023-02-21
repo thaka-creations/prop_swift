@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  analytics_app_gateway:
+  prop_swift_gateway:
     build: .
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
@@ -10,3 +10,15 @@ services:
       - 8000:8000
     env_file:
       - .env
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        max_failure_ratio: 0
+        delay: 3s
+        failure_action: rollback
+      restart_policy:
+        max_attempts: 3
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
