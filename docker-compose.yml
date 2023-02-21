@@ -6,7 +6,7 @@ services:
       - .env
     build: .
     image: prop_swift_service_image:latest
-    command: bash -c "python3 manage.py runserver 0.0.0.0:8000"
+    command: python3 manage.py runserver 0.0.0.0:8000
     ports:
       - 8000:8000
     deploy:
