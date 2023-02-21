@@ -22,3 +22,9 @@ services:
         condition: on-failure
       placement:
         constraints: [node.role == manager]
+    networks:
+        - prop_network
+networks:
+    prop_network:
+      external: true
+
