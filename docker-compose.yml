@@ -5,9 +5,9 @@ services:
       - .env
     build: .
     image: prop_swift_image:latest
-    command: bash -c "python manage.py runserver 0.0.0.0:5704"
+    command: python manage.py runserver 0.0.0.0:8000
     ports:
-      - "5704:5704"
+      - "8000:8000"
     deploy:
       update_config:
         parallelism: 1
