@@ -1,8 +1,10 @@
 # pull official base image
 FROM python:3.9.6-alpine
 
-RUN apt update
-RUN apt-get install cron -y
+RUN apk add --no-cache bash
+
+# install crond
+RUN apk add --no-cache dcron
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -21,7 +23,13 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /prop_swift/
 RUN pip install -r requirements.txt
 
+# cron
+ADD crontab /etc/cron.d/crontab
+RUN chmod 0644 /etc/cron.d/crontab
+
+
 # copy project
 COPY . /prop_swift/
-CMD service cron start
+CMD ["sh", "-c", "crond && python manage.py runserver 0.0.0.0:8000"]
+
 
