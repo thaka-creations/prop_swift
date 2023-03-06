@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.9.6-alpine
+FROM python:3.9.6
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -9,8 +9,8 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /prop_swift
 WORKDIR /prop_swift
 
-RUN yum update
-RUN yum install -y cron && touch /var/log/cron.log
+RUN apt-get update
+RUN apt-get install -y cron && touch /var/log/cron.log
 
 # install dependencies
 RUN pip install --upgrade pip
