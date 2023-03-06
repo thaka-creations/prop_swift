@@ -5,6 +5,7 @@ services:
       - .env
     build: .
     image: prop_swift_image:latest
+    command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
     deploy:
@@ -28,7 +29,9 @@ services:
       - .env
     build: .
     image: prop_swift_image:latest
-    command: cron -f
+    depends_on:
+      - gateway
+    command: cron -f && python manage.py crontab add
     deploy:
       update_config:
         parallelism: 1

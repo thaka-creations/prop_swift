@@ -20,6 +20,3 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /prop_swift/
 
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["./manage.py", "runserver", "0.0.0.0:8000"]
-
