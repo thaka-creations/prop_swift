@@ -1,11 +1,10 @@
-version: "3.5"
+version: "3.8"
 services:
   gateway:
     env_file:
       - .env
     build: .
     image: prop_swift_image:latest
-    command: python manage.py runserver 0.0.0.0:8000 && python manage.py crontab add
     ports:
       - "8000:8000"
     deploy:
@@ -22,6 +21,28 @@ services:
         constraints: [node.role == manager]
     volumes:
       - .:/src
+    networks:
+      - prop_network
+  cron:
+    env_file:
+      - .env
+    build: .
+    image: prop_swift_image:latest
+    command: cron -f
+    depends_on:
+      - gateway
+    deploy:
+      update_config:
+        parallelism: 1
+        max_failure_ratio: 0
+        delay: 3s
+        failure_action: rollback
+      restart_policy:
+        max_attempts: 3
+        condition: on-failure
+      replicas: 3
+      placement:
+        constraints: [node.role == manager]
     networks:
       - prop_network
 networks:
