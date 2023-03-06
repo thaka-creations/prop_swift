@@ -24,6 +24,29 @@ services:
       - .:/src
     networks:
       - prop_network
+  cron:
+    restart: always
+    build: .
+    command: python manage.py crontab add
+    image: prop_swift_image:latest
+    depends_on:
+      - gateway
+    env_file:
+      - .env
+    deploy:
+      replicas: 3
+      restart_policy:
+        max_attempts: 3
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        parallelism: 1
+        max_failure_ratio: 0
+        delay: 3s
+        failure_action: rollback
+    networks:
+      - prop_network
 networks:
   prop_network:
     external: true
