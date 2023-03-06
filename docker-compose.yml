@@ -29,8 +29,6 @@ services:
     build: .
     image: prop_swift_image:latest
     command: cron -f
-    depends_on:
-      - gateway
     deploy:
       update_config:
         parallelism: 1
