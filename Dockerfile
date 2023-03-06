@@ -9,8 +9,8 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /prop_swift
 WORKDIR /prop_swift
 
-RUN apt-get update
-RUN apt-get install -y cron && touch /var/log/cron.log
+RUN yum update
+RUN yum install -y cron && touch /var/log/cron.log
 
 # install dependencies
 RUN pip install --upgrade pip
