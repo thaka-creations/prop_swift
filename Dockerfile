@@ -23,6 +23,4 @@ RUN touch /cron/cronjob.log
 # copy project
 COPY . /prop_swift/
 
-CMD service cron start && python3 manage.py crontab add && python3 manage.py runserver 0.0.0.0:8000
-
 
