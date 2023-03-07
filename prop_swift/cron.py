@@ -18,9 +18,12 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
     subject = "Property Report"
     message = f"Hello, this is a report for {property_name}.\n\n"
     message += "Expenses:\n"
+    amount = 0
     for expense in expense_list:
-        message += f"{expense.date_incurred}: {expense.expense_type} - {expense.amount}\n"
-    message += "\n"
+        message += f"{expense.date_incurred}: {expense.expense_type.title()} - Ksh {expense.amount}\n"
+        amount += expense.amount
+    message += "\n\n"
+    message += f"Total expenses: Ksh {amount}\n"
     if rent_body:
         message += f"Rent amount: {rent_body['rent_amount']}\n"
         message += f"Due date: {rent_body['due_date']}\n"
@@ -36,7 +39,6 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
         )
 
 def reports_scheduler():
-    print("Running reports scheduler")
     qs = Property.objects.filter(date_due=date.today())
 
     for instance in qs:
