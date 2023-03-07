@@ -64,7 +64,7 @@ class PropertyViewSet(viewsets.ViewSet):
 
                 # add first property rent
                 start_date = timezone.now().replace(day=1)
-                due_date = start_date + timezone.timedelta(days=30)
+                due_date = validated_data['date_due']
 
                 property_models.PropertyRent.objects.create(
                     property=instance,

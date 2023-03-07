@@ -58,6 +58,7 @@ class Property(BaseModel):
     owners = models.ManyToManyField(User, related_name="property_owners")
     tenants = models.ManyToManyField(User, related_name="property_tenants")
     managers = models.ManyToManyField(User, related_name="property_managers")
+    date_due = models.DateField(blank=True, null=True) # date for scheduler to send notification
 
 
 class PropertyExpense(BaseModel):

@@ -139,6 +139,7 @@ class AddPropertySerializer(serializers.Serializer):
     is_owner = serializers.BooleanField(required=True)
     files = serializers.ListField(required=True, child=serializers.UUIDField(),
                                   allow_null=True, allow_empty=True)
+    date_due = serializers.DateField(default=None)
 
     def validate(self, attrs):
         if not attrs['is_owner']:
