@@ -20,16 +20,19 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
     message += "Expenses:\n"
     amount = 0
     for expense in expense_list:
-        message += f"{expense.date_incurred}: {expense.expense_type} - {expense.amount}\n"
+        # comma separated values 1,000
+        expense_amount = "{:,}".format(expense.amount)
+        message += f"{expense.date_incurred}: {expense.expense_type} - Ksh {expense_amount}\n"
         amount += expense.amount
     message += "\n"
-    message += f"Total Expenses: {amount}\n\n"
+    amount = "{:,}".format(amount)
+    message += f"Total Expenses: Ksh {amount}\n\n"
     if rent_body:
-        message += f"Rent amount: {rent_body['rent_amount']}\n"
+        message += f"Rent amount: Ksh {rent_body['rent_amount']}\n"
         message += f"Due date: {rent_body['due_date']}\n"
     message += "\n"
     message += "Regards,\n"
-    message += "Property Swift"
+    message += "Property Swift."
 
     for email in email_list:
         notification_utils.send_email(
@@ -62,7 +65,7 @@ def reports_scheduler():
             email_list = instance.tenants.values_list('username', flat=True)
 
             # rent amount for property
-            rent_amount = instance.rent_amount
+            rent_amount = "{:,}".format(instance.rent_amount)
             rent_body = {"rent_amount": rent_amount, "due_date": instance.date_due}
             threading.Thread(target=email_handler, args=(property_name, expense_list, email_list, rent_body),
                                 daemon=False).start()
