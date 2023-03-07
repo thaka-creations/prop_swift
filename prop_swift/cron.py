@@ -1,8 +1,8 @@
-import decimal
 import threading
 from datetime import date
 from shared_utils import notification_utils
 from property.models import Property
+from users.models import User
 
 
 def my_scheduled_job():
@@ -18,11 +18,9 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
     subject = "Property Report"
     message = f"Hello, this is a report for {property_name}.\n\n"
     message += "Expenses:\n"
-    amount = 0
     for expense in expense_list:
-        message += f"{expense.date_incurred}: {expense.expense_type.title()} - Ksh {expense.amount}\n"
+        message += f"{expense.date_incurred}: {expense.expense_type} - Ksh {expense.amount}\n"
     message += "\n"
-    message += f"Total expenses: Ksh {amount}\n\n"
     if rent_body:
         message += f"Rent amount: {rent_body['rent_amount']}\n"
         message += f"Due date: {rent_body['due_date']}\n"
