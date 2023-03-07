@@ -18,9 +18,12 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
     subject = "Property Report"
     message = f"Hello, this is a report for {property_name}.\n\n"
     message += "Expenses:\n"
+    amount = 0
     for expense in expense_list:
         message += f"{expense.date_incurred}: {expense.expense_type} - {expense.amount}\n"
+        amount += expense.amount
     message += "\n"
+    message += f"Total Expenses: {amount}\n\n"
     if rent_body:
         message += f"Rent amount: {rent_body['rent_amount']}\n"
         message += f"Due date: {rent_body['due_date']}\n"
