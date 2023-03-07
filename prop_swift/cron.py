@@ -21,9 +21,8 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
     amount = 0
     for expense in expense_list:
         message += f"{expense.date_incurred}: {expense.expense_type.title()} - Ksh {expense.amount}\n"
-        amount += decimal.Decimal(expense.amount)
-    message += "\n\n"
-    message += f"Total expenses: Ksh {amount}\n"
+    message += "\n"
+    message += f"Total expenses: Ksh {amount}\n\n"
     if rent_body:
         message += f"Rent amount: {rent_body['rent_amount']}\n"
         message += f"Due date: {rent_body['due_date']}\n"
