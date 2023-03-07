@@ -16,10 +16,6 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /prop_swift/
 RUN pip install -r requirements.txt
 
-# django-crontab logfine
-RUN mkdir /cron
-RUN touch /cron/cronjob.log
-
 # copy project
 COPY . /prop_swift/
 
