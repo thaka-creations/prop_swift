@@ -17,15 +17,13 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /prop_swift/
 RUN pip install -r requirements.txt
 
-
-# copy project
-COPY . /prop_swift/
-
 # django-crontab logfine
 RUN mkdir /cron
 RUN touch /cron/cronjob.log
 
-EXPOSE 8000
+# copy project
+COPY . /prop_swift/
+
 
 CMD service cron start && python3 manage.py crontab add && python3 manage.py runserver 0.0.0.0:8000
 
