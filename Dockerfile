@@ -5,6 +5,8 @@ FROM python:3.9.6-alpine
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN apk add --no-cache bash
+
 # make directory
 RUN mkdir /prop_swift
 WORKDIR /prop_swift
