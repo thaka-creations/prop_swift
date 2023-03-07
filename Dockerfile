@@ -4,8 +4,6 @@ FROM python:3.9.6-buster
 RUN apt update
 RUN apt-get install cron -y
 
-RUN apk add --no-cache bash
-
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -26,5 +24,9 @@ COPY . /prop_swift/
 # django-crontab logfine
 RUN mkdir /cron
 RUN touch /cron/cronjob.log
+
+EXPOSE 8000
+
+CMD service cron start && python3 manage.py crontab add && python3 manage.py runserver 0.0.0.0:8000
 
 

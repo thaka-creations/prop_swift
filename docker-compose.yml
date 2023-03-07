@@ -5,9 +5,6 @@ services:
       - .env
     build: .
     image: prop_swift_image:latest
-    command: sh -c "service cron start && python3 manage.py crontab add && python3 manage.py runserver 0.0.0.0:8000"
-    ports:
-      - "8000:8000"
     deploy:
       update_config:
         parallelism: 1
