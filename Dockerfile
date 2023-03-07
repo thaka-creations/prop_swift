@@ -1,8 +1,5 @@
 # pull official base image
-FROM python:3.9.6-buster
-
-RUN apt update
-RUN apt-get install cron -y
+FROM python:3.9.6-alphine
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -23,7 +20,6 @@ RUN touch /cron/cronjob.log
 
 # copy project
 COPY . /prop_swift/
-
 
 CMD service cron start && python3 manage.py crontab add && python3 manage.py runserver 0.0.0.0:8000
 
