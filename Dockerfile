@@ -1,7 +1,8 @@
 # pull official base image
-FROM python:3.9.6-alpine
+FROM python:3.9.6-buster
 
-RUN apk add --no-cache bash
+RUN apt update
+RUN apt-get install cron -y
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
