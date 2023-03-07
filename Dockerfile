@@ -20,4 +20,6 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /prop_swift/
 
+CMD service cron start && python3 manage.py crontab add && python3 manage.py runserver 0.0.0.0:8000
+
 
