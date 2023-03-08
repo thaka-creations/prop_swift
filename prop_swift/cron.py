@@ -1,5 +1,8 @@
 import threading
-from datetime import date
+from datetime import date, timedelta
+
+from django.db.models import F
+
 from shared_utils import notification_utils
 from property.models import Property
 from users.models import User
@@ -22,7 +25,7 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
     for expense in expense_list:
         # comma separated values 1,000
         expense_amount = "{:,}".format(expense.amount)
-        message += f"{expense.date_incurred}: {expense.expense_type} - Ksh {expense_amount}\n"
+        message += f"{expense.date_incurred}: {expense.expense_type.title()} - {expense.description.title()} - Ksh {expense_amount}\n"
         amount += expense.amount
     message += "\n"
     amount = "{:,}".format(amount)
@@ -42,7 +45,9 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
         )
 
 def reports_scheduler():
-    qs = Property.objects.filter(date_due=date.today())
+    # minus days from today
+    date_due = date.today() -  timedelta(days=1)
+    qs = Property.objects.filter(date_due=F(date.today() - timedelta(days='owners__reminder_days')))
 
     for instance in qs:
         # property name

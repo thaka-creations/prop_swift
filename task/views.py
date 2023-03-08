@@ -6,8 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 
+from prop_swift.cron import reports_scheduler
 from shared_utils import error_utils, notification_utils
 from . import models as task_models, serializers as task_serializers
+from users.models import User
 
 
 class TaskViewSet(viewsets.ViewSet):
@@ -61,6 +63,37 @@ class TaskViewSet(viewsets.ViewSet):
                                               due_date=datetime.now())
         serializer = self.get_serializer(queryset, many=True)
         return Response({"details": serializer.data}, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="set-reminder-day",
+        permission_classes=[IsAuthenticated]
+    )
+    def set_reminder_day(self, request):
+        days = self.request.data.get("days")
+        if not days:
+            return Response({"details": "Days is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            int(days)
+        except ValueError:
+            return Response({"details": "Days must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # update user
+        user = request.user
+        user.reminder_day = days
+        user.save()
+        return Response({"details": "Reminder day(s) set successfully"}, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="run-test",
+    )
+    def run_test(self, request):
+        reports_scheduler()
+        return Response({"details": "Test run successfully"}, status=status.HTTP_200_OK)
 
 
 class EmailHandlerView(APIView):

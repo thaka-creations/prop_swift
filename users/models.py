@@ -29,6 +29,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     middle_name = models.CharField(max_length=255, null=True, blank=True)
     account_status = models.CharField(max_length=255, choices=ACCOUNT_STATUS, default='ACTIVE')
     is_manager = models.BooleanField(default=False)
+    reminder_day = models.IntegerField(default=0)
 
     USERNAME_FIELD = "username"
 
