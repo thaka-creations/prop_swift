@@ -1,7 +1,8 @@
 import threading
 from datetime import date, timedelta
 
-from django.db.models import F
+from django.db.models import F, IntegerField, Subquery
+from django.db.models.functions import Cast
 
 from shared_utils import notification_utils
 from property.models import Property
@@ -45,9 +46,11 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
         )
 
 def reports_scheduler():
-    # minus days from today
-    date_due = date.today() -  timedelta(days=1)
-    qs = Property.objects.filter(date_due=F(date.today() - timedelta(days='owners__reminder_days')))
+    # pass field to days in timedelta
+    date_due = date.today() + timedelta(days=2)
+    qs = Property.objects.filter(
+        date_due=date_due
+    )
 
     for instance in qs:
         # property name
