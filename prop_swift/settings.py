@@ -162,5 +162,5 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 CRONJOBS = [
-    ('*/5 * * * *', 'prop_swift.cron.reports_scheduler', '>> /cron/django_cron.log 2>&1')
+    ('0 8 * * *', 'prop_swift.cron.reports_scheduler', '>> /cron/django_cron.log 2>&1')
 ]
