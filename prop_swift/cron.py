@@ -1,5 +1,5 @@
 import threading
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from django.db.models import F, IntegerField, Subquery
 from django.db.models.functions import Cast
@@ -46,6 +46,7 @@ def email_handler(property_name, expense_list, email_list, rent_body=None):
         )
 
 def reports_scheduler():
+    print("datetime", datetime.now())
     # pass field to days in timedelta
     date_due = date.today() + timedelta(days=2)
     qs = Property.objects.filter(
